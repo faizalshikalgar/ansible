@@ -9,6 +9,7 @@
        - docker
        - python3
        - pip
+       - python3-docker
       state: present
       update_cache: yes
   - name: downloading docker compose and install
@@ -23,6 +24,8 @@
 
 - name: python docker pkg installing
   hosts: ec2
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   tasks:
   - name: python docker pkg installing
     pip:
@@ -30,33 +33,35 @@
         - docker
         - docker-compose
 
-- name: adding ec2-user in docker group
+- name: creating new user
   hosts: ec2
   become: yes
   tasks:
-  - name: adding ec2-user in docker group
+  - name: creating new linux user
     user:
-      name: ec2-user
-      groups: docker
+      name: faizal
+      groups: adm,docker,faizal
       append: yes
-  - name: Reconnectiong to server session
-    meta: reset_connection
+  # - name: Reconnectiong to server session
+  #   meta: reset_connection
 
 - name: Start Docker container
   hosts: ec2
-  vars_files:
+  become: yes
+  become_user: faizal
+  vars_files: 
     - project_vars
   tasks:
     - name: copy docker compose
       ansible.builtin.copy:
         src: docker-compose-full.yaml
-        dest: /home/ec2-user/docker-compose.yaml
+        dest: /home/faizal/docker-compose.yaml
     - name: Log into docker-hub private registry
-      community.docker.docker_login:
+      docker_login:
         registry_url: https://index.docker.io/v1/
         username: faizalshikalgar
         password: "{{docker_password}}"
     - name: start docker container from compose
       community.docker.docker_compose:
-        project_src: /home/ec2-user/
+        project_src: /home/faizal/
         state: present
