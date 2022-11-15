@@ -1,0 +1,13 @@
+---
+- name: installing docker and python3
+  hosts: ec2
+  vars: 
+    - ansible_python_interpreter: /usr/bin/python
+  tasks:
+  - name: installing docker and python3
+    yum:
+      name:
+       - docker
+       - python3
+      state: present
+      update_cache: yes
