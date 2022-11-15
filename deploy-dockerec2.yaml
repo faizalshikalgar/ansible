@@ -5,20 +5,37 @@
   vars: 
     - ansible_python_interpreter: /usr/bin/python
   tasks:
-  - name: installing docker and python3
+  - name: make sure docker, python3 and docker-compose is installed and ensure docker-deamon is running.
     yum:
       name:
        - docker
        - python3
       state: present
       update_cache: yes
+  - name: downloading docker compose and install
+    get_url:
+        url: https://github.com/docker/compose/releases/download/1.29.0/docker-compose-Linux-{{lookup('pipe','uname -m')}}
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+  - name: ensure docker is running
+    ansible.builtin.systemd:
+        name: docker
+        state: started
 
-- name: installing docker-compose
+- name: adding ec2-user in docker group
   hosts: ec2
   become: yes
   tasks:
-    - name: downloading docker compose and install
-      get_url:
-          url: https://github.com/docker/compose/releases/download/1.29.0/docker-compose-Linux-{{lookup('pipe','uname -m')}}
-          dest: /usr/local/bin/docker-compose
-          mode: +x
+  - name: adding ec2-user in docker group
+    user:
+      name: ec2-user
+      groups: docker
+      append: yes
+  - name: Reconnectiong to server session
+    meta: reset_connection
+
+- name: adding ec2-user in docker group
+  hosts: ec2
+  tasks:
+   - name: pulling redis container
+     command: docker pull redis
