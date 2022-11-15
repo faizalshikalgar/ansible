@@ -1,15 +1,13 @@
 ---
-- name: installing docker and python3
+- name: installing docker, pip, docker-compose and starting docker-deamon
   hosts: ec2
   become: yes
-  vars: 
-    - ansible_python_interpreter: /usr/bin/python
   tasks:
-  - name: make sure docker, python3 and docker-compose is installed and ensure docker-deamon is running.
+  - name: make sure docker, pip and docker-compose is installed and ensure docker-deamon is running.
     yum:
       name:
        - docker
-       - python3
+       - pip
       state: present
       update_cache: yes
   - name: downloading docker compose and install
@@ -21,6 +19,15 @@
     ansible.builtin.systemd:
         name: docker
         state: started
+
+- name: python docker pkg installing
+  hosts: ec2
+  tasks:
+  - name: python docker pkg installing
+    pip:
+      name: 
+        - docker
+        - docker-compose
 
 - name: adding ec2-user in docker group
   hosts: ec2
@@ -34,8 +41,21 @@
   - name: Reconnectiong to server session
     meta: reset_connection
 
-- name: adding ec2-user in docker group
+- name: Start Docker container
   hosts: ec2
+  vars_files:
+    - project_vars
   tasks:
-   - name: pulling redis container
-     command: docker pull redis
+    - name: copy docker compose
+      ansible.builtin.copy:
+        src: docker-compose-full.yaml
+        dest: /home/ec2-user/docker-compose.yaml
+    - name: Log into docker-hub private registry
+      community.docker.docker_login:
+        registry_url: https://index.docker.io/v1/
+        username: faizalshikalgar
+        password: "{{docker_password}}"
+    - name: start docker container from compose
+      community.docker.docker_compose:
+        project_src: /home/ec2-user/
+        state: present
