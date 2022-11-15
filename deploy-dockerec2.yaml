@@ -1,6 +1,7 @@
 ---
 - name: installing docker and python3
   hosts: ec2
+  become: yes
   vars: 
     - ansible_python_interpreter: /usr/bin/python
   tasks:
