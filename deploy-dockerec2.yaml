@@ -1,6 +1,6 @@
 ---
 - name: installing docker, pip, docker-compose and starting docker-deamon
-  hosts: ec2
+  hosts: all #ec2
   become: yes
   tasks:
   - name: make sure docker, pip and docker-compose is installed and ensure docker-deamon is running.
@@ -22,7 +22,7 @@
         state: started
 
 - name: python docker pkg installing
-  hosts: ec2
+  hosts: all #ec2
   tasks:
   - name: python docker pkg installing
     pip:
@@ -31,7 +31,7 @@
         - docker-compose
 
 - name: adding ec2-user in docker group
-  hosts: ec2
+  hosts: all #ec2
   become: yes
   tasks:
   - name: adding ec2-user in docker group
@@ -43,7 +43,7 @@
     meta: reset_connection
 
 - name: Start Docker container
-  hosts: ec2
+  hosts: all #ec2
   vars_files:
     - project_vars
   tasks:
